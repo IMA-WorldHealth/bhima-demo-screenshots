@@ -1,0 +1,8 @@
+{
+  "name": "bhima-demo-screenshots",
+  "version": "1.0.0",
+  "description": "Takes screenshots of http://demo.bhi.ma for our webpage",
+  "main": "index.js",
+  "author": "jniles",
+  "license": "MIT"
+}
