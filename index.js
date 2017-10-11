@@ -28,6 +28,8 @@ const CHROME_OPTS = {
 };
 
 // pages to screenshot
+// TODO(@jniles) - make filenames without spaces - potentially define the names here.  They
+// are a pain to work with on the web - have to use encodeURIComponent() to get them to work.
 const PAGES_TO_SCREENSHOT = [
   { url : '#!/patients/register', name : 'Patient Registration' },
   { url : '#!/invoices/patient', name : 'Invoicing' },
@@ -51,6 +53,7 @@ const PAGES_TO_SCREENSHOT = [
 
     await page.goto(webpage, NETWORK_OPTS);
 
+    // intially take the screenshot of the login page since we can't come back here.
     console.log('Got to login page!  Taking a screenshot..');
     await page.screenshot({path: 'screenshots/login.png', fullPage: true});
 
@@ -101,7 +104,9 @@ const login = (async () => {
 /**
  * @function navigateAndScreenshot
  *
- *
+ * @descripton
+ * This function navigates to awebpage and takes a full page PNG screenshot.  It expects
+ * the route to define the value of the path.  Stores all values in a screenshots/ directory.
  */
 const navigateAndScreenshot = (async (page, route) => {
   try {
@@ -115,4 +120,3 @@ const navigateAndScreenshot = (async (page, route) => {
     console.error(`ERR [route] ${route.name}: ${e.message}`);
   }
 });
-
