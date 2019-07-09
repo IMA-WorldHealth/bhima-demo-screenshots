@@ -1,9 +1,16 @@
 # bhima-demo-screenshots
-Set of scripts to take screenshots of different BHIMA screens.
+Set of scripts to take screenshots of different BHIMA screens.  You need to set the chrome path
+and the site address in the `.env` file.
 
-### usage
+### Installation
 ```sh
-npm install
-
-node ./index.js
+yarn
 ```
+
+### Usage
+```sh
+yarn start
+```
+
+### LICENSE
+MIT

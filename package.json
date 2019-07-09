@@ -4,5 +4,17 @@
   "description": "Takes screenshots of http://demo.bhi.ma for our webpage",
   "main": "index.js",
   "author": "jniles",
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^8.0.0",
+    "puppeteer-core": "^1.18.1"
+  },
+  "devDependencies": {
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.2.0",
+    "eslint-plugin-import": "^2.18.0"
+  }
 }

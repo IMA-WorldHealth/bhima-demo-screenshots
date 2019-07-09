@@ -7,13 +7,14 @@
  * LICENSE: MIT
  */
 
-const puppeteer = require('puppeteer');
+require('dotenv').config();
+const puppeteer = require('puppeteer-core');
 
-const webpage = 'http://demo.bhi.ma/';
+const webpage = process.env.SITE;
 
 const NETWORK_OPTS = {
-  waitUntil : "networkidle",
-  networkIdleTimeout : 15000,
+  waitUntil: ['domcontentloaded', 'networkidle0'],
+  timeout: 60000,
 };
 
 // 1080p
@@ -24,21 +25,31 @@ const VIEWPORT = {
 
 const CHROME_OPTS = {
   headless: true,
-  //   executablePath : '/usr/bin/google-chrome',
+  executablePath: process.env.CHROME_BIN,
+};
+
+const CREDENTIALS = {
+  username: process.env.BH_USERNAME,
+  password: process.env.BH_PASSWORD,
 };
 
 // pages to screenshot
 // TODO(@jniles) - make filenames without spaces - potentially define the names here.  They
 // are a pain to work with on the web - have to use encodeURIComponent() to get them to work.
 const PAGES_TO_SCREENSHOT = [
-  { url : '#!/patients/register', name : 'Patient Registration' },
-  { url : '#!/invoices/patient', name : 'Invoicing' },
-  { url : '#!/vouchers/complex', name : 'Complex Vouchers' },
-  { url : '#!/vouchers/simple', name : 'Simple Vouchers' },
-  { url : '#!/accounts', name : 'Account Management' },
-  { url : '#!/debtors/groups/create', name : 'Debtor Group Creation' },
-  { url : '#!/enterprises', name : 'Enterprise Management '},
+  { url: '#!/patients/register', name: 'Patient Registration' },
+  { url: '#!/invoices/patient', name: 'Invoicing' },
+  { url: '#!/vouchers/complex', name: 'Complex Vouchers' },
+  { url: '#!/vouchers/simple', name: 'Simple Vouchers' },
+  { url: '#!/accounts', name: 'Account Management' },
+  { url: '#!/debtors/groups/create', name: 'Debtor Group Creation' },
+  { url: '#!/enterprises', name: 'Enterprise Management ' },
 ];
+
+
+function delay(seconds) {
+  return new Promise((resolve) => { setTimeout(() => resolve(), seconds * 1000); });
+}
 
 (async () => {
   try {
@@ -55,12 +66,25 @@ const PAGES_TO_SCREENSHOT = [
 
     // intially take the screenshot of the login page since we can't come back here.
     console.log('Got to login page!  Taking a screenshot..');
-    await page.screenshot({path: 'screenshots/login.png', fullPage: true});
+    await page.screenshot({ path: 'screenshots/login.png', fullPage: true, type: 'png' });
+    console.log('screenshot saved.');
 
-    await page.evaluate(login);
+
+    console.log('Reloading with debug information...');
+    await page.evaluate(() => {
+      window.angular.reloadWithDebugInfo();
+    });
+
+    await delay(35);
+
+    console.log('done.');
+
+    console.log('Logging into server...');
+    await page.evaluate(login, CREDENTIALS);
+    console.log('Done!');
 
     // loop through each URL, taking screenshots of it.
-    for (let route of PAGES_TO_SCREENSHOT) {
+    for (const route of PAGES_TO_SCREENSHOT) {
       await navigateAndScreenshot(page, route);
     }
 
@@ -73,7 +97,6 @@ const PAGES_TO_SCREENSHOT = [
 })();
 
 
-
 /**
  * @function login
  *
@@ -81,25 +104,23 @@ const PAGES_TO_SCREENSHOT = [
  * This function is slightly hacky, as it manipulates angular's digest loop
  * to register values.  Oh well.  Logs the browser in.
  */
-const login = (async () => {
+function login(creds) {
   const qs = window.document.querySelector.bind(window.document);
-  const angular = window.angular;
+  const { angular } = window;
   const $element = angular.element(qs('form[name="LoginForm"]'));
 
   const $scope = $element.scope();
   const $ctrl = $element.controller();
 
-  angular.extend($ctrl.credentials, { username : 'admin', password: 'admin'});
+  angular.extend($ctrl.credentials, creds);
 
   $scope.$digest();
 
   qs('button[type=submit]').click();
 
   // make sure we wait for the thing to load.
-  return new Promise((resolve, reject) => {
-    setTimeout(() => resolve(), 5000);
-  });
-});
+  return new Promise((resolve) => { setTimeout(() => resolve(), 5000); });
+}
 
 /**
  * @function navigateAndScreenshot
@@ -110,11 +131,14 @@ const login = (async () => {
  */
 const navigateAndScreenshot = (async (page, route) => {
   try {
-    console.log(`[page] Navigating to ${route.url}.`);
+    console.log(`[page] Navigating to ${webpage}${route.url}.`);
+
     await page.goto(`${webpage}${route.url}`, NETWORK_OPTS);
 
-    const fname = `screenshots/${route.name}.png`;
-    await page.screenshot({path: fname, fullPage: true});
+    await delay(15);
+
+    const fname = `screenshots/${route.name.trim()}.png`;
+    await page.screenshot({ path: fname, fullPage: true, type: 'png' });
     console.log(`[page] Screenshot of ${route.url} saved to ${fname}.`);
   } catch (e) {
     console.error(`ERR [route] ${route.name}: ${e.message}`);
