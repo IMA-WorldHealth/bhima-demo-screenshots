@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "dotenv": "^8.2.0",
-    "puppeteer-core": "^5.4.0"
+    "puppeteer-core": "^5.4.1"
   },
   "devDependencies": {
     "eslint": "^7.12.0",
